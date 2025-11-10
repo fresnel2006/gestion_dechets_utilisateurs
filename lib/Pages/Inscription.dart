@@ -39,7 +39,7 @@ child: Column(children: [
   SizedBox(height: MediaQuery.of(context).size.height *0.02),
   Container(
     child: ElevatedButton(onPressed: (){
-      Navigator.push(context, MaterialPageRoute(builder: (context)=>CreationComptePage(numero: numero.text)));
+      Navigator.push(context, MaterialPageRoute(builder: (context)=>CreationComptePage(numero: numero.text,nom_complet:nom_complet.text)));
 
     }, child: Text("VALIDER",style: TextStyle(color: Colors.white,fontFamily: "Poppins2"),),style: ElevatedButton.styleFrom(backgroundColor: Colors.green,),)
     ,)

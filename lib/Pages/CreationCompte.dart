@@ -1,22 +1,27 @@
+import 'dart:convert';
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:hackaton_utilisateur/Pages/Inscription.dart';
 import 'package:hackaton_utilisateur/Pages/Redirecteur.dart';
+import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
 
 
 class CreationComptePage extends StatefulWidget {
   var numero;
+  var nom_complet;
 
-  CreationComptePage({required this.numero});
+  CreationComptePage({required this.numero, required this.nom_complet});
   @override
   State<CreationComptePage> createState() => _CreationComptePageState();
 }
 
 class _CreationComptePageState extends State<CreationComptePage> {
-  final Saisie1=TextEditingController();
-  final Saisie2=TextEditingController();
+  final mot_de_passe0=TextEditingController();
+  final mot_de_passe=TextEditingController();
   bool ecriture_valeur=true;
   bool apparaitre=true;
   bool couleurbordure1=true;
@@ -26,6 +31,7 @@ class _CreationComptePageState extends State<CreationComptePage> {
   Future <void> sauvegarder() async {
     SharedPreferences preferences=await SharedPreferences.getInstance();
     await preferences.setBool("rediriger", rediriger);
+
   }
   void messagecode1(){
   ScaffoldMessenger.of(context).showSnackBar(SnackBar(duration: Duration(milliseconds: 1200),backgroundColor: Colors.transparent,content: Container(
@@ -72,6 +78,7 @@ decoration: BoxDecoration(
         subtitle: Container(decoration:BoxDecoration(color:Colors.white,border: Border.all(color: Colors.white),borderRadius: BorderRadius.circular(MediaQuery.of(context).size.width *0.02)),margin:EdgeInsets.only(top: MediaQuery.of(context).size.height *0.01),child: Text("Saisissez a correctement",textAlign: TextAlign.center,style: TextStyle(color: Colors.green,fontFamily: "Poppins2"),),), ),),
     ));
   }
+
   @override
   Widget build(BuildContext context) {
 
@@ -102,7 +109,7 @@ decoration: BoxDecoration(
                         height: 50,
                         padding: EdgeInsets.only(left: 10,right: 10),
                         child: TextFormField(
-                          controller: Saisie1 ,
+                          controller: mot_de_passe0 ,
                           cursorColor: Color(0xFF292D3E),
                           decoration: InputDecoration(
                               hintText:"Mot de passe",
@@ -124,7 +131,7 @@ decoration: BoxDecoration(
                         height: 50,
                         padding: EdgeInsets.only(left: 10,right: 10),
                         child: TextFormField(
-                          controller: Saisie2,
+                          controller: mot_de_passe,
                           obscureText: apparaitre,
                           cursorColor: Color(0xFF292D3E),
                           decoration: InputDecoration(
@@ -149,32 +156,38 @@ decoration: BoxDecoration(
 //Bouton d'inscription
                     SizedBox(height: MediaQuery.of(context).size.height *0.04,),
                     Container(child: ElevatedButton(onPressed: (){
-                      if(Saisie1.text.trim().length<5){
+                      if(mot_de_passe0.text.trim().length<5){
                         setState(() {
                           couleurbordure1=false;
                         });
                         messagecode1();
+
                       }
-                      if(Saisie1.text.trim().isEmpty){
+                      if(mot_de_passe0.text.trim().isEmpty){
                           setState(() {
                             couleurbordure1=false;
                           });
                           messagecode2();
+
                       }
-                      if(Saisie1.text.contains(" ")){
+                      if(mot_de_passe0.text.contains(" ")){
                         messagecode3();
+
                       }
-                      if(Saisie2.text!=Saisie1.text || Saisie2.text.isEmpty ){
+                      if(mot_de_passe.text!=mot_de_passe0.text || mot_de_passe.text.isEmpty ){
                         setState(() {
                           couleurborder2=false;
                         });
+
                       }
-                      if(Saisie2.text!=Saisie1.text){
+                      if(mot_de_passe.text!=mot_de_passe0.text){
                         messagecode4();
+
                       }
-                      if(Saisie1.text==Saisie2.text && Saisie1.text.length>=5){
-                        Navigator.push(context, MaterialPageRoute(builder: (context)=>RedirecteurPage()));
-sauvegarder();
+                      if(mot_de_passe.text==mot_de_passe0.text && mot_de_passe0.text.length>=5){
+
+
+
                       }
                     }, child: Text("VERIFICATION",style: TextStyle(color: Colors.white,fontFamily: "Poppins"),),style: ElevatedButton.styleFrom(backgroundColor: Colors.green),),),
                     SizedBox(height: MediaQuery.of(context).size.height *0.04,),
