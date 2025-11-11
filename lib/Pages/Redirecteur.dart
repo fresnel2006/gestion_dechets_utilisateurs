@@ -36,7 +36,6 @@ void initState(){
         if(rediriger==false) {
           return DrawerPage();
         }else{
-
           return InscriptionPage();
         }
 

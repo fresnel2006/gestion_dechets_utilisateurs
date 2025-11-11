@@ -1,10 +1,11 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:hackaton_utilisateur/Pages/Connexion.dart';
 import 'package:hackaton_utilisateur/Pages/CreationCompte.dart';
 import 'package:lottie/lottie.dart';
-
+import 'package:http/http.dart' as http;
 class InscriptionPage extends StatefulWidget {
   const InscriptionPage({super.key});
 
@@ -20,6 +21,20 @@ class InscriptionPage extends StatefulWidget {
     bool couleurbordure2=true;
 
 class _InscriptionPageState extends State<InscriptionPage> {
+  //les variables de chargement des donnees
+  var data;
+  //fonction pour envoyer les donnees vers fastapi qui se chargera d'envoyer vers la base de donnée
+  Future <void> envoyerdonnees() async {
+    final url = Uri.parse("http://10.0.2.2:8000/verifier_utilisateur");
+    var message = await http.post(
+        url, headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'numero': numero.text,
+        })
+    );
+     data=jsonDecode(message.body);
+    print(data["existe"]);
+  }
   void messagenotifier(){
     showModalBottomSheet(context: context, builder: (context)=>Container(
       height: MediaQuery.of(context).size.height *0.35,
@@ -120,7 +135,7 @@ child: Column(children: [
               )
             ,SizedBox(height: MediaQuery.of(context).size.height *0.03,),
             //Bouton d'inscription
-            Container(child: ElevatedButton(onPressed: () {
+            Container(child: ElevatedButton(onPressed: () async{
 
               print(nom_complet.text);
               print(numero.text);
@@ -146,8 +161,15 @@ child: Column(children: [
                 });
               }
 if(nom_complet.text.trim().isNotEmpty && numero.text.trim().length==10){
-  messagenotifier();
-}
+  await envoyerdonnees();
+
+  if(data["existe"]=="true"){
+
+    Navigator.push(context, MaterialPageRoute(builder: (context)=>ConnexionPage()));
+  }if(data["existe"]=="false"){
+    Navigator.push(context, MaterialPageRoute(builder: (context)=>CreationComptePage(numero: numero, nom_complet: nom_complet)));
+  }
+  }
             },child: Text("S'INSCRIRE",style: TextStyle(color: Colors.white,fontFamily: "Poppins"),),style: ElevatedButton.styleFrom(backgroundColor: Colors.green),),),
             SizedBox(height: MediaQuery.of(context).size.height *0.02,),
             //le widget contenant les contenaires et le texte de la ligne

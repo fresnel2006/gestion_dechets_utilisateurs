@@ -3,6 +3,8 @@ import 'dart:convert';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:hackaton_utilisateur/Pages/Acceuil.dart';
+import 'package:hackaton_utilisateur/Pages/Drawer.dart';
 import 'package:hackaton_utilisateur/Pages/Inscription.dart';
 import 'package:hackaton_utilisateur/Pages/Redirecteur.dart';
 import 'package:http/http.dart' as http;
@@ -27,7 +29,20 @@ class _CreationComptePageState extends State<CreationComptePage> {
   bool couleurbordure1=true;
   bool couleurborder2=true;
   bool rediriger=false;
-
+  var data;
+  Future <void> envoyerdonnees() async{
+    final url=Uri.parse("http://10.0.2.2:8000/ajouter_utilisateur");
+    var message=await http.post(url,headers: {'Content-Type':'application/json'},
+    body: jsonEncode({
+      'nom':nom_complet.text,
+      'numero':numero.text,
+      'mot_de_passe':mot_de_passe.text
+    })
+    );
+    data=jsonDecode(message.body);
+    
+    print(data["utilisateur"]);
+  }
   Future <void> sauvegarder() async {
     SharedPreferences preferences=await SharedPreferences.getInstance();
     await preferences.setBool("rediriger", rediriger);
@@ -102,7 +117,7 @@ decoration: BoxDecoration(
                           Text("VEUILLEZ SAISIR \nVOTRE MOT DE PASSE\nPOUR LE NUMERO",textAlign: TextAlign.center,style: TextStyle(fontFamily: "Poppins"),),
                           TextButton(onPressed: (){setState(() {
                             ecriture_valeur=!ecriture_valeur;
-                          });}, child:ecriture_valeur?Text("##########",style: TextStyle(fontFamily: "Poppins",color: Colors.green),):Text(widget.numero,style: TextStyle(fontFamily: "Poppins",color: Colors.green)))
+                          });}, child:ecriture_valeur?Text("##########",style: TextStyle(fontFamily: "Poppins",color: Colors.green),):Text(numero.text,style: TextStyle(fontFamily: "Poppins",color: Colors.green)))
                         ],),),SizedBox(height: MediaQuery.of(context).size.height *0.02,),
                     Container(
                         width: MediaQuery.of(context).size.width *0.7,
@@ -185,7 +200,8 @@ decoration: BoxDecoration(
 
                       }
                       if(mot_de_passe.text==mot_de_passe0.text && mot_de_passe0.text.length>=5){
-
+envoyerdonnees();
+Navigator.push(context, MaterialPageRoute(builder: (context)=>RedirecteurPage()));
 
 
                       }

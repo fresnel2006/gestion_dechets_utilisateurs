@@ -1,4 +1,10 @@
+import 'dart:convert';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:hackaton_utilisateur/Pages/Drawer.dart';
+import 'package:hackaton_utilisateur/Pages/Redirecteur.dart';
+import 'package:http/http.dart' as http;
 import 'Inscription.dart';
 import 'package:lottie/lottie.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
@@ -11,12 +17,32 @@ class ConnexionPage extends StatefulWidget {
 }
 
 class _ConnexionPageState extends State<ConnexionPage> {
-  final Numero=TextEditingController();
-  final Motdepasse=TextEditingController();
+  var data;
+  Future<void> sauvegarder() async{
+    SharedPreferences perfs=await SharedPreferences.getInstance();
+    await perfs.setBool("rediriger", false);
+  }
+  Future <void> envoyerdonnee() async {
+    final url = Uri.parse("http://10.0.2.2:8000/verifier_donnee");
+    var message=await http.post(url,headers: {'Content-Type':'application/json'},
+    body: jsonEncode({
+      'numero':numero.text,
+      'mot_de_passe':mot_de_passe.text
+    }),
+    );
+    setState(() {
+      data=jsonDecode(message.body);
+    });
+    print(numero.text);
+    print(mot_de_passe.text);
+    print(data["existe"]);
+  }
+  final numero=TextEditingController();
+  final mot_de_passe=TextEditingController();
   bool bourdurecouleur1=true;
 
 void verifiersaisie(){
-  if(Numero.text.trim().length<10 || Motdepasse.text.trim().length>10){
+  if(numero.text.trim().length<10 || mot_de_passe.text.trim().length>10){
     setState(() {
       bourdurecouleur1=false;
     });
@@ -43,7 +69,10 @@ void verifiersaisie(){
         height: 50,
         padding: EdgeInsets.only(left: 10,right: 10),
         child: TextFormField(
-          controller: Numero,
+          controller: numero,
+          inputFormatters: [
+            FilteringTextInputFormatter.digitsOnly
+          ],
           cursorColor: Color(0xFF292D3E),
           decoration: InputDecoration(
               hintText:"Numero",
@@ -65,6 +94,7 @@ void verifiersaisie(){
       padding: EdgeInsets.only(left: 10,right: 10),
 //Pour la saisie du numero
       child: TextFormField(
+        controller: mot_de_passe,
         cursorColor: Color(0xFF292D3E),
         decoration: InputDecoration(
           hintText: "Mot de passe",
@@ -81,10 +111,14 @@ void verifiersaisie(){
       ),
     ),SizedBox(height: MediaQuery.of(context).size.height *0.02,),
       //Bouton d'inscription
-      Container(child: ElevatedButton(onPressed: (){
+      Container(child: ElevatedButton(onPressed: () async{
 
           verifiersaisie();
-
+          await envoyerdonnee();
+          if(data["existe"]=="true"){
+            sauvegarder();
+            Navigator.push(context, MaterialPageRoute(builder: (context)=>DrawerPage()));
+          }
 
       }, child: Text("SE CONNECTER",style: TextStyle(color: Colors.white),),style: ElevatedButton.styleFrom(backgroundColor: Colors.green),),),
       SizedBox(height: MediaQuery.of(context).size.height *0.02,),

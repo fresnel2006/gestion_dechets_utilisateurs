@@ -1,5 +1,4 @@
 import 'dart:convert';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_zoom_drawer/flutter_zoom_drawer.dart';
 import 'package:http/http.dart' as http show get;
@@ -9,13 +8,14 @@ import 'package:geolocator/geolocator.dart' as geolocator;
 class AcceuilPage extends StatefulWidget {
   const AcceuilPage({required this.controller, Key? key}) : super(key: key);
   final ZoomDrawerController controller;
-
   @override
   State<AcceuilPage> createState() => _AcceuilPageState();
 }
+
 double longitude=0;
 double latitude=0;
 var donnee;
+
 
 class _AcceuilPageState extends State<AcceuilPage> {
   Future <void> avoirville() async{
