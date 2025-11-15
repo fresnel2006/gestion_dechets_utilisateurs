@@ -121,7 +121,7 @@ decoration: BoxDecoration(
                         ],),),SizedBox(height: MediaQuery.of(context).size.height *0.02,),
                     Container(
                         width: MediaQuery.of(context).size.width *0.7,
-                        height: 50,
+                        height: MediaQuery.of(context).size.height *0.065,
                         padding: EdgeInsets.only(left: 10,right: 10),
                         child: TextFormField(
                           controller: mot_de_passe0 ,
@@ -143,7 +143,7 @@ decoration: BoxDecoration(
                     SizedBox(height: MediaQuery.of(context).size.height *0.02,),
                     Container(
                         width: MediaQuery.of(context).size.width *0.7,
-                        height: 50,
+                        height: MediaQuery.of(context).size.height *0.065,
                         padding: EdgeInsets.only(left: 10,right: 10),
                         child: TextFormField(
                           controller: mot_de_passe,

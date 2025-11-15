@@ -3,7 +3,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:hackaton_utilisateur/Pages/Drawer.dart';
-import 'package:hackaton_utilisateur/Pages/Redirecteur.dart';
 import 'package:http/http.dart' as http;
 import 'Inscription.dart';
 import 'package:lottie/lottie.dart';
@@ -17,11 +16,14 @@ class ConnexionPage extends StatefulWidget {
 }
 
 class _ConnexionPageState extends State<ConnexionPage> {
+  //varaiable chargé de prendre une valeur pour affirme si l'utilisateur existe
   var data;
+  //fonction de sauvegarde permettant le chargement des dpages en foctions de l'utilisateur inscrit
   Future<void> sauvegarder() async{
     SharedPreferences perfs=await SharedPreferences.getInstance();
     await perfs.setBool("rediriger", false);
   }
+  //fonction qui sert a envoyer les donnees dans la base de donnee(nom et mot_de_passe)
   Future <void> envoyerdonnee() async {
     final url = Uri.parse("http://10.0.2.2:8000/verifier_donnee");
     var message=await http.post(url,headers: {'Content-Type':'application/json'},
@@ -33,25 +35,34 @@ class _ConnexionPageState extends State<ConnexionPage> {
     setState(() {
       data=jsonDecode(message.body);
     });
-    print(numero.text);
-    print(mot_de_passe.text);
     print(data["existe"]);
   }
+  //Variable de controler
   final numero=TextEditingController();
   final mot_de_passe=TextEditingController();
   bool bourdurecouleur1=true;
-
+//Fonction de verification des saisie
 void verifiersaisie(){
-  if(numero.text.trim().length<10 || mot_de_passe.text.trim().length>10){
+  //si le numero est inferieur a 10 ou superieur a 10
+  if(numero.text.trim().length<10 || numero.text.trim().length>10){
     setState(() {
+      //couleur devient rouge
       bourdurecouleur1=false;
     });
   }else{
+    //couleur de l'input devient verte
     setState(() {
       bourdurecouleur1=true;
     });
   }
 }
+//fonction de redirection vers la page de acceuille
+  void redirecteur(){
+    if(data["existe"]=="true"){
+      sauvegarder();
+      Navigator.push(context, MaterialPageRoute(builder: (context)=>DrawerPage()));
+    }
+  }
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -66,16 +77,18 @@ void verifiersaisie(){
       //Pour l'input de la saisie du Nom
       Container(
         width: MediaQuery.of(context).size.width *0.7,
-        height: 50,
+        height: MediaQuery.of(context).size.height *0.065,
         padding: EdgeInsets.only(left: 10,right: 10),
         child: TextFormField(
           controller: numero,
+          style: TextStyle(fontFamily: "Poppins"),
           inputFormatters: [
             FilteringTextInputFormatter.digitsOnly
           ],
           cursorColor: Color(0xFF292D3E),
           decoration: InputDecoration(
               hintText:"Numero",
+              hintStyle: TextStyle(fontFamily: "Poppins",color: Colors.grey[500]),
               prefixIcon: Icon(FontAwesomeIcons.hashtag,size: 19,color: Color(0xFF292D3E),),
               focusedBorder: UnderlineInputBorder(
                   borderSide: BorderSide(color: bourdurecouleur1?Colors.green:Colors.red,width: MediaQuery.of(context).size.width *0.007,)
@@ -88,16 +101,24 @@ void verifiersaisie(){
           ),
         ),
 
-      ),SizedBox(height: MediaQuery.of(context).size.height *0.02,),Container(
+      )
+
+          //espace
+          ,SizedBox(height: MediaQuery.of(context).size.height *0.02,),
+          //espace
+
+          Container(
       width: MediaQuery.of(context).size.width *0.7,
-      height: 50,
+            height: MediaQuery.of(context).size.height *0.065,
       padding: EdgeInsets.only(left: 10,right: 10),
 //Pour la saisie du numero
       child: TextFormField(
         controller: mot_de_passe,
+        style: TextStyle(fontFamily: "Poppins"),
         cursorColor: Color(0xFF292D3E),
         decoration: InputDecoration(
           hintText: "Mot de passe",
+          hintStyle: TextStyle(fontFamily: "Poppins",color: Colors.grey[500]),
           prefixIcon: Icon(FontAwesomeIcons.lock,size: 17,color: Color(0xFF292D3E)),
           enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.all(
@@ -109,25 +130,29 @@ void verifiersaisie(){
           ),
         ),
       ),
-    ),SizedBox(height: MediaQuery.of(context).size.height *0.02,),
-      //Bouton d'inscription
+    ),
+
+          //espace
+          SizedBox(height: MediaQuery.of(context).size.height *0.02,),
+          //espace
+
+          //Bouton d'inscription
       Container(child: ElevatedButton(onPressed: () async{
 
           verifiersaisie();
           await envoyerdonnee();
-          if(data["existe"]=="true"){
-            sauvegarder();
-            Navigator.push(context, MaterialPageRoute(builder: (context)=>DrawerPage()));
-          }
+          redirecteur();
 
-      }, child: Text("SE CONNECTER",style: TextStyle(color: Colors.white),),style: ElevatedButton.styleFrom(backgroundColor: Colors.green),),),
+
+      }, child: Text("SE CONNECTER",style: TextStyle(color: Colors.white,fontFamily: "Poppins"),),style: ElevatedButton.styleFrom(backgroundColor: Colors.green),),),
       SizedBox(height: MediaQuery.of(context).size.height *0.02,),
       Row(
         mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: [
-          Container(color: Color(0xFF292D3E),width: 150,height: 2,),
-          Text("OU",style: TextStyle(color: Color(0xFF292D3E)),),
-          Container(color: Color(0xFF292D3E),width: 150,height: 2,),
+          Container(color: Colors.black,width: MediaQuery.of(context).size.width *0.35,height: MediaQuery.of(context).size.height *0.002,),
+          Text("OU",style: TextStyle(fontFamily: "Poppins",color: Colors.green),),
+          Container(color: Colors.black,width: MediaQuery.of(context).size.width *0.35,height: MediaQuery.of(context).size.height *0.002,),
+
         ],),
       //animation
       Container(child: Lottie.asset("assets/animations/fruit_lance.json",height: MediaQuery.of(context).size.height *0.2,),),
@@ -135,10 +160,11 @@ void verifiersaisie(){
       Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Text("PAS ENCORE DE COMPTE ?",style: TextStyle(color: Color(0xFF292D3E)),),
+          Text("PAS ENCORE DE COMPTE ?",style: TextStyle(color: Colors.black,fontFamily: "Poppins"),),
           TextButton(onPressed: (){
+            //widget de redirection vers la page d'inscription au clic
             Navigator.push(context, MaterialPageRoute(builder: (context)=>InscriptionPage()));
-          }, child: Text("S'INSCRIRE",style: TextStyle(color: Colors.green),))
+          }, child: Text("S'INSCRIRE",style: TextStyle(color: Colors.green,fontFamily: "Poppins"),))
         ],),
     ])),
     );

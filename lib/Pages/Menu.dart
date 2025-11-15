@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_zoom_drawer/src/drawer_controller.dart';
+import 'package:hackaton_utilisateur/Pages/Compte.dart';
 import 'package:lottie/lottie.dart';
 
 class MenuPage extends StatefulWidget {
@@ -27,10 +28,13 @@ spacing: MediaQuery.of(context).size.height *0.018,
             decoration: BoxDecoration(border: Border.all(color: Colors.green),color: Colors.white,borderRadius: BorderRadius.all(Radius.circular(MediaQuery.of(context).size.width *0.1))),
             width: MediaQuery.of(context).size.width *1,
           child:Row(
+
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Icon(Icons.account_circle_sharp,color: Colors.green,),
-              TextButton(onPressed: (){}, child: Text("Mon compte",style: TextStyle(color: Colors.black,fontFamily: "Poppins2")))
+              TextButton(onPressed: (){
+                Navigator.push(context, MaterialPageRoute(builder: (context)=>ComptePage()));
+              }, child: Text("Mon compte",style: TextStyle(color: Colors.black,fontFamily: "Poppins2")))
             ],
           )),
           Container(
@@ -76,6 +80,8 @@ spacing: MediaQuery.of(context).size.height *0.018,
                   TextButton(onPressed: (){}, child: Text("ASSISTANCE",style: TextStyle(color: Colors.green,fontFamily: "Poppins2")))
                 ],
               )),
+
+
 
 
         ],),

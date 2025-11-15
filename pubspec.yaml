@@ -74,6 +74,8 @@ flutter:
      - assets/animations/fruit_lance.json
      - assets/animations/chargement.json
      - assets/animations/deploiement.json
+     - assets/animations/Walking Pothos.json
+     - assets/animations/Recycle.json
 
   #   - images/a_dot_ham.jpeg
 

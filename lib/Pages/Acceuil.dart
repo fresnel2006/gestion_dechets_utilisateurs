@@ -1,7 +1,8 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_zoom_drawer/flutter_zoom_drawer.dart';
-import 'package:http/http.dart' as http show get;
+import 'package:hackaton_utilisateur/Pages/Compte.dart';
+import 'package:http/http.dart' as http;
 import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart';
 import 'package:geolocator/geolocator.dart' as geolocator;
 
@@ -12,58 +13,54 @@ class AcceuilPage extends StatefulWidget {
   State<AcceuilPage> createState() => _AcceuilPageState();
 }
 
-double longitude=0;
-double latitude=0;
 var donnee;
 
-
 class _AcceuilPageState extends State<AcceuilPage> {
-  Future <void> avoirville() async{
-    final url=Uri.parse("https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=$latitude&lon=$longitude&accept-language=fr");
-    final reponse=await http.get(url,headers: {
-      "User-Agent": "hackaton_utilisateur/1.0 (exemple@monmail.com)"
-    },);
+  double longitude = 0;
+  double latitude = 0;
 
-    var message=jsonDecode(reponse.body);
+  // Pour le marqueur de l'utilisateur
+  CircleAnnotationManager? _circleAnnotationManager;
+  CircleAnnotation? _userCircleAnnotation;
+  // Nouvelle variable pour gérer le centrage initial de la carte
+  bool _isFirstLocationUpdate = true;
 
-    setState(() {
-      donnee=message["address"]["city"];
-    });
-    print(donnee);
+  Future<void> avoirville() async {
+    if (latitude == 0 && longitude == 0) return;
+
+    final url = Uri.parse(
+        "https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=$latitude&lon=$longitude&accept-language=fr");
+    final reponse = await http.get(
+      url,
+      headers: {"User-Agent": "hackaton_utilisateur/1.0 (exemple@monmail.com)"},
+    );
+
+    if (reponse.statusCode == 200) {
+      var message = jsonDecode(reponse.body);
+      if (mounted) {
+        // Correction pour trouver le nom du lieu de manière fiable
+        var address = message["address"];
+        String? nomLieu = address["city"] ?? address["town"] ?? address["village"] ?? address["suburb"];
+        setState(() {
+          donnee = nomLieu ?? "Lieu inconnu";
+        });
+      }
+      print(donnee);
+    }
   }
-  // 2. Toutes les variables et fonctions sont maintenant DANS la classe
+
   geolocator.Position? _currentPosition;
   late MapboxMap _mapboxMap;
-
-  // Le point utilise la classe `Position` de Mapbox, donc pas de préfixe ici.
-  final _mezePoint = Point(
-    coordinates: Position(-4.0082563, 5.3599517),
-  );
 
   @override
   void initState() {
     super.initState();
-    // Le token doit être défini ici, une seule fois.
-    MapboxOptions.setAccessToken("pk.eyJ1IjoiZnJlc25lbDYwNyIsImEiOiJjbWhrbGx1MzMwOGV4MmtxazdsOWp0dzIxIn0.v02HfvuS1iZnm_-od_niSw");
+    MapboxOptions.setAccessToken(
+        "pk.eyJ1IjoiZnJlc25lbDYwNyIsImEiOiJjbWhrbGx1MzMwOGV4MmtxazdsOWp0dzIxIn0.v02HfvuS1iZnm_-od_niSw");
     _determinePosition();
     avoirville();
-
   }
 
-  // Fonction pour recevoir le contrôleur de la carte
-  void _onMapCreated(MapboxMap controller) {
-    _mapboxMap = controller;
-    // Centrer la carte sur le point initial
-    _mapboxMap.setCamera(
-      CameraOptions(
-        center: _mezePoint,
-        zoom: 14,
-      ),
-    );
-    avoirville();
-  }
-
-  /// Détermine la position et écoute les changements.
   Future<void> _determinePosition() async {
     bool serviceEnabled;
     geolocator.LocationPermission permission;
@@ -88,51 +85,73 @@ class _AcceuilPageState extends State<AcceuilPage> {
       return;
     }
 
-    // Écoute le flux de positions
     geolocator.Geolocator.getPositionStream(
       locationSettings: const geolocator.LocationSettings(
         accuracy: geolocator.LocationAccuracy.high,
         distanceFilter: 10,
       ),
     ).listen((geolocator.Position position) {
-
       print('Position mise à jour: ${position.latitude}, ${position.longitude}');
-      setState(() {
-        longitude=position.longitude;
-        latitude=position.latitude;
-print(longitude);
-print(latitude);
-      });
-      // 3. Utiliser setState pour mettre à jour la variable et rafraîchir l'écran
+
       if (mounted) {
         setState(() {
           _currentPosition = position;
-          longitude=position.longitude;
-          latitude=position.latitude;
-          print(longitude);
-          print(latitude);
-          avoirville();
+          longitude = position.longitude;
+          latitude = position.latitude;
         });
+
+        avoirville();
+        _updateUserMarker(position);
+
+        // A la toute première mise à jour de la position, on centre la carte
+        if (_isFirstLocationUpdate) {
+          _isFirstLocationUpdate = false;
+
+          _mapboxMap.flyTo(
+            CameraOptions(
+              center: Point(coordinates: Position(position.longitude, position.latitude)),
+              zoom: 14,
+            ),
+            MapAnimationOptions(duration: 1500), // Animation fluide
+          );
+        }
       }
     });
   }
 
+  void _onMapCreated(MapboxMap controller) async {
+    _mapboxMap = controller;
+    _circleAnnotationManager = await _mapboxMap.annotations.createCircleAnnotationManager();
+  }
+
+  void _updateUserMarker(geolocator.Position position) async {
+    if (_circleAnnotationManager == null) return;
+    final point = Point(coordinates: Position(position.longitude, position.latitude));
+
+    if (_userCircleAnnotation == null) {
+      _userCircleAnnotation = await _circleAnnotationManager!.create(
+        CircleAnnotationOptions(
+            geometry: point,
+            circleColor: Colors.blue.value,
+            circleRadius: 8.0,
+            circleStrokeColor: Colors.white.value,
+            circleStrokeWidth: 2.0),
+      );
+    } else {
+      _userCircleAnnotation!.geometry = point;
+      _circleAnnotationManager!.update(_userCircleAnnotation!);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    // Note: `WidgetsFlutterBinding.ensureInitialized()` et la définition du token
-    // ne doivent pas être dans la méthode build car elle est appelée très souvent.
-    // Je les ai déplacés dans initState.
-
     return Scaffold(
       body: Stack(
         children: [
-          // Le widget Mapbox en arrière-plan
           MapWidget(
             styleUri: MapboxStyles.MAPBOX_STREETS,
             onMapCreated: _onMapCreated,
           ),
-
-          // Votre interface utilisateur par-dessus la carte
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
@@ -143,7 +162,7 @@ print(latitude);
                     backgroundColor: Colors.white,
                     child: IconButton(
                       onPressed: () {
-                        // Correction: Il faut appeler la fonction avec des parenthèses ()
+                        // Correction de l'erreur ici
                         widget.controller.toggle!();
                       },
                       icon: Icon(Icons.menu, color: Colors.green),
@@ -161,22 +180,32 @@ print(latitude);
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Icon(Icons.location_on,color: Colors.red,),
+                    Icon(Icons.location_on, color: Colors.red),
                     SizedBox(width: 8),
-
-                    // Afficher la position pour vérifier que ça marche
-                    Text(donnee==null?"CHARGEMENT....":"$donnee"),
+                    Text(donnee == null ? "CHARGEMENT...." : "$donnee",style: TextStyle(fontFamily: "Poppins"),),
                   ],
                 ),
               ),
+              //fresnel modifie ici met l'icone du compte
               Container(
                   margin: EdgeInsets.only(top: MediaQuery.of(context).size.height * 0.07),
                   decoration: BoxDecoration(border: Border.all(color: Colors.black), shape: BoxShape.circle),
                   child: CircleAvatar(
                     backgroundColor: Colors.white,
                     child: IconButton(
-                      onPressed: () {},
-                      icon: Icon(Icons.manage_accounts_sharp, color: Colors.green),
+                      onPressed: () {
+                        // Quand on appuie sur ce bouton, on recentre la carte
+                        if (_currentPosition != null) {
+                          _mapboxMap.flyTo(
+                            CameraOptions(
+                              center: Point(coordinates: Position(_currentPosition!.longitude, _currentPosition!.latitude)),
+                              zoom: 14,
+                            ),
+                            MapAnimationOptions(duration: 1500),
+                          );
+                        }
+                      },
+                      icon: Icon(Icons.my_location, color: Colors.green),
                     ),
                   )),
             ],
@@ -187,23 +216,45 @@ print(latitude);
                   borderRadius: BorderRadius.only(topLeft: Radius.circular(MediaQuery.of(context).size.width * 0.15), topRight: Radius.circular(MediaQuery.of(context).size.width * 0.15))),
               margin: EdgeInsets.only(top: MediaQuery.of(context).size.height * 0.7),
               child: ListView.builder(
-                itemCount: 3,
+                itemCount: 2,
                 itemBuilder: (context, index) {
                   return Stack(
                     alignment: AlignmentGeometry.center,
                     children: [
-                    Container(
+                      Container(
+                        padding:EdgeInsets.only(top: MediaQuery.of(context).size.height *0.015),
+                        margin:EdgeInsets.only(bottom:MediaQuery.of(context).size.height *0.02),
+                        height: MediaQuery.of(context).size.height *0.11,
+                        width: MediaQuery.of(context).size.width *0.7,
+                        decoration: BoxDecoration(
+                          color: Colors.green,
+                          borderRadius: BorderRadius.all(Radius.circular(MediaQuery.of(context).size.width *0.1))
+                        ),
+                      child: ListTile(title: Text("CONDUCTEUR",style: TextStyle(color: Colors.white,fontFamily: "Poppins"),),
+                        subtitle: Text("DISTANCE : ",style: TextStyle(color: Colors.white70,fontFamily: "Poppins"),),leading: CircleAvatar(radius: MediaQuery.of(context).size.width *0.1,),),
+                      ),
+                      //fait des modification ici c'etait pas toi la
+Positioned(top:MediaQuery.of(context).size.height *0.03,right:MediaQuery.of(context).size.width *0.11,child: Container(decoration:BoxDecoration(borderRadius: BorderRadius.all(Radius.circular(MediaQuery.of(context).size.width *1)),border: Border.all(color: Colors.green)),
+  child:CircleAvatar(backgroundColor: Colors.white,child: IconButton(onPressed: (){
 
-                      margin: EdgeInsets.only(bottom: MediaQuery.of(context).size.height *0.03),
-                      padding:EdgeInsets.only(top: MediaQuery.of(context).size.height *0.01),
-                      width: MediaQuery.of(context).size.width *0.7,height: MediaQuery.of(context).size.height *0.1,decoration: BoxDecoration(color: Colors.green,borderRadius: BorderRadius.all(Radius.circular(MediaQuery.of(context).size.width *0.1))),child: ListTile(leading: CircleAvatar(radius: MediaQuery.of(context).size.width *0.08,),title: Text("Conducteur 1",style: TextStyle(fontFamily: "Poppins2",fontSize: MediaQuery.of(context).size.width *0.05,color: Colors.white),),subtitle: Text("Distance",style: TextStyle(color: Colors.white,fontFamily: "Poppins2"),),),),
-                      Positioned(
-                        top:MediaQuery.of(context).size.height *0.025,
-                        right:MediaQuery.of(context).size.width *0.11,
-                        child: CircleAvatar(radius: MediaQuery.of(context).size.width *0.05,child: Icon(Icons.play_arrow_rounded,size: MediaQuery.of(context).size.width *0.09,),)
-                        ,)],);
+  }, icon: Icon(Icons.arrow_forward_outlined))),))
+                    ],
+                  );
                 },
-              ))
+              )),
+          Positioned(
+              top: MediaQuery.of(context).size.height *0.14,
+              right: MediaQuery.of(context).size.width *0.035,
+              child: Row(
+            children: [
+              Container(decoration: BoxDecoration(border: Border.all(color: Colors.black),borderRadius: BorderRadius.circular(MediaQuery.of(context).size.width *1)),child: CircleAvatar(backgroundColor: Colors.white,child: IconButton(onPressed: (){}, icon: Icon(Icons.warning,color: Colors.red)),),),
+              SizedBox(width: MediaQuery.of(context).size.width *0.04,),
+              Container(decoration: BoxDecoration(border: Border.all(color: Colors.black),borderRadius: BorderRadius.circular(MediaQuery.of(context).size.width *1)),child: CircleAvatar(backgroundColor: Colors.white,child: IconButton(onPressed: (){
+                Navigator.push(context, MaterialPageRoute(builder: (context)=>ComptePage()));
+              }, icon: Icon(Icons.account_circle_sharp,color: Colors.green))),)
+            ],))
+
+
         ],
       ),
     );

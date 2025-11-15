@@ -14,7 +14,6 @@ class InscriptionPage extends StatefulWidget {
 }
 
     //Variables permettant le controle de la saisie des donnees
-
     final nom_complet = TextEditingController();
     final numero = TextEditingController();
     bool couleurbordure1=true;
@@ -35,6 +34,19 @@ class _InscriptionPageState extends State<InscriptionPage> {
      data=jsonDecode(message.body);
     print(data["existe"]);
   }
+  //message disant a l'utilisateur qu'il s'est deja connecté
+  void messagecode1(){
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(duration: Duration(milliseconds: 1200),backgroundColor: Colors.transparent,content: Container(
+      height: MediaQuery.of(context).size.height *0.11,
+      decoration: BoxDecoration(
+          color: Colors.green,
+          borderRadius:BorderRadius.all(Radius.circular(MediaQuery.of(context).size.width *0.06))
+      ),
+      child: ListTile(leading:Icon(Icons.check_circle_outline,size: MediaQuery.of(context).size.width *0.13,color: Colors.white,),title: Text("UTILISATEUR EXISTE",style: TextStyle(color: Colors.white,fontFamily: "Poppins2"),),
+        subtitle: Container(margin:EdgeInsets.only(top: MediaQuery.of(context).size.height *0.02),decoration:BoxDecoration(color:Colors.white,border: Border.all(color: Colors.white),borderRadius: BorderRadius.circular(MediaQuery.of(context).size.width *0.02)),child: Text("REDIRECTION",textAlign: TextAlign.center,style: TextStyle(color: Colors.green,fontFamily: "Poppins2"),),), ),),
+    ));
+  }
+  //fonction affichant un message dissant que l'utilisateur a rentré les donnees correctement et lui demande d'etre veridique
   void messagenotifier(){
     showModalBottomSheet(context: context, builder: (context)=>Container(
       height: MediaQuery.of(context).size.height *0.35,
@@ -45,21 +57,67 @@ class _InscriptionPageState extends State<InscriptionPage> {
       ),
 child: Column(children: [
   SizedBox(height: MediaQuery.of(context).size.height *0.02,),
-  Text("ATTENTION !",textAlign: TextAlign.center,style: TextStyle(fontSize: MediaQuery.of(context).size.width *0.07,fontFamily: "Poppins2",color: Colors.red[200]),),
+  Icon(Icons.warning_amber_outlined,size: MediaQuery.of(context).size.width *0.1,color: Colors.red[200],),
+  SizedBox(height: MediaQuery.of(context).size.height *0.01,),
+  Text("ATTENTION !",textAlign: TextAlign.center,style: TextStyle(fontSize: MediaQuery.of(context).size.width *0.06,fontFamily: "Poppins2",color: Colors.red[200]),),
   SizedBox(height: MediaQuery.of(context).size.height *0.02,),
   Container(
-    padding: EdgeInsets.only(left: 13,right: 13),
-    child: Text("Veuillez vérifier attentivement votre numéro de téléphone.Il sera utilisé pour les opérations de vérification, \net les communications liées à votre compte.",textAlign: TextAlign.center,style: TextStyle(fontSize:15,color: Colors.green,fontFamily: "Poppins2"),)
+    padding: EdgeInsets.only(left: MediaQuery.of(context).size.width *0.03,right: MediaQuery.of(context).size.width *0.03),
+    child: Text("Veuillez vérifier attentivement votre numéro \nde téléphone.Il sera utilisé \npour les opérations de vérification, \net les communications liées \nà votre compte.",textAlign: TextAlign.center,style: TextStyle(fontSize:15,color: Colors.green,fontFamily: "Poppins2"),)
     ,),
   SizedBox(height: MediaQuery.of(context).size.height *0.02),
   Container(
     child: ElevatedButton(onPressed: (){
       Navigator.push(context, MaterialPageRoute(builder: (context)=>CreationComptePage(numero: numero.text,nom_complet:nom_complet.text)));
-
     }, child: Text("VALIDER",style: TextStyle(color: Colors.white,fontFamily: "Poppins2"),),style: ElevatedButton.styleFrom(backgroundColor: Colors.green,),)
     ,)
   ],),
     ));
+  }
+//fonction de verification de la saisie des valeurs
+  void verifie_valeur_et_validation()async {
+    //couleur rouge de la bordure de l'input de saisie nom si la saisie est vide
+    if(nom_complet.text.isEmpty || nom_complet.text.trim().isEmpty){
+      setState(() {
+        couleurbordure1=false;
+      });
+    }
+    //couleur rouge de la bordure de l'input de saisie du numero si c'est inferieur a 10 ou vide
+    if(numero.text.trim().isEmpty||numero.text.trim().length!=10){
+      setState(() {
+        couleurbordure2=false;
+      });
+    }
+    //couleur verte de la bordure de l'input de saisie si la saisie du nom est correct
+    if(nom_complet.text.trim().isNotEmpty){
+      setState(() {
+        couleurbordure1=true;
+      });
+    }
+    //couleur verte de la bourdure de l'input de saisie si le nom est n'est pas vide et correctement saisie c'est a dire 10 chiffres
+    if(numero.text.isNotEmpty && numero.text.trim().isNotEmpty && numero.text.trim().length==10){
+      setState(() {
+        couleurbordure2=true;
+      });
+    }
+    //les conditions de redirection
+    //Si le nom n'est pas vide et bien saisie
+    if(nom_complet.text.trim().isNotEmpty && numero.text.trim().length==10){
+      //On appelle la fonction qui est chargee de verifier les donnees et renvoie une valeur
+      await envoyerdonnees();
+      //Si l'utilisateur existe sa redirige ver la page de connexion
+      if(data["existe"]=="true"){
+        //message disant que l'utilisateur est revenu
+        messagecode1();
+        //widget de redirection
+        Navigator.push(context, MaterialPageRoute(builder: (context)=>ConnexionPage()));
+      }
+      //Si l'utilisateur n'existe pas on redirige vers la page de creation de compte
+      if(data["existe"]=="false"){
+        //notifie un messsage et le redirige vers la page de creation de compte
+        messagenotifier();
+      }
+    }
   }
   @override
   Widget build(BuildContext context) {
@@ -82,7 +140,7 @@ child: Column(children: [
                 //Pour l'input de la saisie du Nom
                 Container(
                   width: MediaQuery.of(context).size.width *0.7,
-                  height: 50,
+                  height: MediaQuery.of(context).size.height *0.065,
                   padding: EdgeInsets.only(left: 10,right: 10),
                   child: TextFormField(
                     controller: nom_complet,
@@ -103,11 +161,14 @@ child: Column(children: [
                     ),
                   ),
                 ),
-            //Pour l'input de la saisie du Nom
+            //espace vertical
             SizedBox(height: MediaQuery.of(context).size.height *0.02,),
+              //espace vertical
+
+              //contenaire de saisie du numero
               Container(
                 width: MediaQuery.of(context).size.width *0.7,
-                height: 50,
+                height: MediaQuery.of(context).size.height *0.065,
                 padding: EdgeInsets.only(left: 10,right: 10),
                   //Pour la saisie du numero
                 child: TextFormField(
@@ -133,52 +194,22 @@ child: Column(children: [
                   ),
                 ),
               )
+              //espace vertical
             ,SizedBox(height: MediaQuery.of(context).size.height *0.03,),
-            //Bouton d'inscription
-            Container(child: ElevatedButton(onPressed: () async{
+              //espace vertical
 
-              print(nom_complet.text);
-              print(numero.text);
-              print(numero.text.length);
-              if(nom_complet.text.isEmpty || nom_complet.text.trim().isEmpty){
-                  setState(() {
-                    couleurbordure1=false;
-                  });
-              }
-              if(numero.text.trim().isEmpty||numero.text.trim().length!=10){
-                  setState(() {
-                    couleurbordure2=false;
-                  });
-              }
-              if(nom_complet.text.trim().isNotEmpty){
-                setState(() {
-                  couleurbordure1=true;
-                });
-              }
-              if(numero.text.isNotEmpty && numero.text.trim().isNotEmpty && numero.text.trim().length==10){
-                setState(() {
-                  couleurbordure2=true;
-                });
-              }
-if(nom_complet.text.trim().isNotEmpty && numero.text.trim().length==10){
-  await envoyerdonnees();
-
-  if(data["existe"]=="true"){
-
-    Navigator.push(context, MaterialPageRoute(builder: (context)=>ConnexionPage()));
-  }if(data["existe"]=="false"){
-    Navigator.push(context, MaterialPageRoute(builder: (context)=>CreationComptePage(numero: numero, nom_complet: nom_complet)));
-  }
-  }
+              //Bouton d'inscription
+            Container(child: ElevatedButton(onPressed: (){
+              verifie_valeur_et_validation();
             },child: Text("S'INSCRIRE",style: TextStyle(color: Colors.white,fontFamily: "Poppins"),),style: ElevatedButton.styleFrom(backgroundColor: Colors.green),),),
             SizedBox(height: MediaQuery.of(context).size.height *0.02,),
             //le widget contenant les contenaires et le texte de la ligne
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
-              Container(color: Color(0xFF292D3E),width: 150,height: 2,),
-              Text("OU",style: TextStyle(fontFamily: "Poppins",color: Color(0xFF292D3E)),),
-              Container(color: Color(0xFF292D3E),width: 150,height: 2,),
+              Container(color: Colors.black,width: MediaQuery.of(context).size.width *0.35,height: MediaQuery.of(context).size.height *0.002,),
+              Text("OU",style: TextStyle(fontFamily: "Poppins",color: Colors.green),),
+              Container(color: Colors.black,width: MediaQuery.of(context).size.width *0.35,height: MediaQuery.of(context).size.height *0.002),
             ],),
             //animation
             Container(child: Lottie.asset("assets/animations/fruit_lance.json",height: MediaQuery.of(context).size.height *0.2,),),
