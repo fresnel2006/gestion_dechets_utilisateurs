@@ -31,7 +31,41 @@ class _ComptePageState extends State<ComptePage> {
     print(numero);
     print(nom);
   }
-  
+
+  Future <void> verifier_mot_de_passe() async{
+    showModalBottomSheet(backgroundColor:Colors.transparent,context: context, builder: (context)=>SingleChildScrollView(child:Container(height: MediaQuery.of(context).size.height *0.6,width: MediaQuery.of(context).size.width *1,decoration: BoxDecoration(color: Colors.white,border: Border(top: BorderSide(color: Colors.green,width: MediaQuery.of(context).size.width *0.05)),
+      borderRadius: BorderRadius.only(topLeft: Radius.circular(MediaQuery.of(context).size.width *0.6),topRight: Radius.circular(MediaQuery.of(context).size.width *0.6)),
+      
+    ),child: Column(
+      children: [
+        Container(width: MediaQuery.of(context).size.width *1,),
+        SizedBox(height: MediaQuery.of(context).size.height *0.06,),
+      Lottie.asset("assets/animations/Warning animation.json"),
+        SizedBox(height: MediaQuery.of(context).size.height *0.04,),
+        Container(child: Text("Saisissez votre \nmot de passe actuel : ",textAlign: TextAlign.center,style: TextStyle(fontFamily: "Poppins",fontSize: MediaQuery.of(context).size.width *0.05),),),
+        SizedBox(height: MediaQuery.of(context).size.height *0.04,),
+        Container(
+          height: MediaQuery.of(context).size.height *0.07,
+          width: MediaQuery.of(context).size.width *0.7,
+          child: TextFormField(
+            decoration: InputDecoration(
+              hintText: "Mot de passe",
+              hintStyle: TextStyle(fontFamily: "Poppins",color: Colors.black38),
+              prefixIcon: Icon(Icons.lock),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.all(Radius.circular(MediaQuery.of(context).size.width *0.065))
+          ),
+           focusedBorder: OutlineInputBorder(
+               borderRadius: BorderRadius.all(Radius.circular(MediaQuery.of(context).size.width *0.065))
+           )
+        ),),),
+        SizedBox(height: MediaQuery.of(context).size.height *0.04,),
+        Container(
+
+          child: ElevatedButton(onPressed: (){}, child: Text("Verifier",style: TextStyle(fontFamily:"Poppins",color: Colors.white,fontSize: MediaQuery.of(context).size.width *0.05),),style: ElevatedButton.styleFrom(backgroundColor: Colors.green),),)
+    ],
+    ),)));
+  }
 
 @override
 void initState(){
@@ -116,7 +150,7 @@ void initState(){
                   children: [
 Icon(Icons.edit,color: Colors.green,),
                     SizedBox(width: MediaQuery.of(context).size.width *0.04,),
-                    Text(nom,style: TextStyle(fontFamily: "Poppins"),)
+                    Text(nom??"vide",style: TextStyle(fontFamily: "Poppins"),)
 
 
                 ],),),
@@ -151,11 +185,11 @@ Icon(Icons.edit,color: Colors.green,),
                     children: [
                       Icon(Icons.lock,color: Colors.green,),
                       SizedBox(width: MediaQuery.of(context).size.width *0.04,),
-                      Text("##########",style: TextStyle(fontFamily: "Poppins"))
+                      Text("####",style: TextStyle(fontFamily: "Poppins"))
                   ],),),
                 GestureDetector(
                     onTap: (){
-                     Navigator.push(context, MaterialPageRoute(builder: (context)=>CompteModificationPage()));
+                     verifier_mot_de_passe();
                       },
                     child: Container(
                   alignment: AlignmentGeometry.center,
