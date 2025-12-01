@@ -24,7 +24,7 @@ class _InscriptionPageState extends State<InscriptionPage> {
   var data;
   //fonction pour envoyer les donnees vers fastapi qui se chargera d'envoyer vers la base de donnée
   Future <void> envoyerdonnees() async {
-    final url = Uri.parse("http://192.168.1.17:8000/verifier_utilisateur");
+    final url = Uri.parse("http://192.168.1.36:8000/verifier_utilisateur");
     var message = await http.post(
         url, headers: {'Content-Type': 'application/json'},
         body: jsonEncode({
@@ -75,7 +75,7 @@ child: SingleChildScrollView(child: Column(children: [
     )));
   }
 //fonction de verification de la saisie des valeurs
-  void verifie_valeur_et_validation()async {
+  void verifie_valeur_et_validation() async {
     //couleur rouge de la bordure de l'input de saisie nom si la saisie est vide
     if(nom_complet.text.isEmpty || nom_complet.text.trim().isEmpty){
       setState(() {

@@ -57,7 +57,7 @@ class _AcceuilPageState extends State<AcceuilPage> {
   var numero;
   var data;
   Future <void> affichier_donnee()async{
-    final url=Uri.parse("http://192.168.1.17:8000/afficher_donnee_utilisateur");
+    final url=Uri.parse("http://192.168.1.36:8000/afficher_donnee_utilisateur");
     var message=await http.post(url,headers: {"Content-Type":"application/json"},
         body: jsonEncode({
           "numero":numero
@@ -184,7 +184,7 @@ class _AcceuilPageState extends State<AcceuilPage> {
                     backgroundColor: Colors.white,
                     child: IconButton(
                       onPressed: (){
-                        // Correction de l'erreur ici
+
                         ZoomDrawer.of(context)!.toggle();
 
                       },
