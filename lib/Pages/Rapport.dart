@@ -88,6 +88,7 @@ prendre_photo();
                 ),//espace
                 SizedBox(height: MediaQuery.of(context).size.height *0.03,),
                 Container(
+
                   width: MediaQuery.of(context).size.width *0.9,
 padding: EdgeInsets.all(MediaQuery.of(context).size.width *0.007),
                   height: MediaQuery.of(context).size.height *0.07,
