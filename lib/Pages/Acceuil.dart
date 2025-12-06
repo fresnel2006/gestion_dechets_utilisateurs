@@ -1,10 +1,14 @@
 import 'dart:convert';
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_zoom_drawer/flutter_zoom_drawer.dart';
+import 'package:gal/gal.dart';
 import 'package:hackaton_utilisateur/Pages/Compte.dart';
-import 'package:hackaton_utilisateur/Pages/Rapport.dart';
+
 import 'package:http/http.dart' as http;
-import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart';
+import 'package:image_picker/image_picker.dart' as picker;
+import 'package:lottie/lottie.dart';
+import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart' ;
 import 'package:geolocator/geolocator.dart' as geolocator;
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -18,9 +22,111 @@ class AcceuilPage extends StatefulWidget {
 var donnee;
 
 class _AcceuilPageState extends State<AcceuilPage> {
+  final description=TextEditingController();
+  var photo;
+  var photo_rapport;
   double longitude = 0;
   double latitude = 0;
+  String photo_string="";
 
+  Future <void> prendre_photo() async {
+    photo = await picker.ImagePicker().pickImage(source: picker.ImageSource.camera);
+    var photo_bytes=await File(photo!.path).readAsBytes();
+    photo_rapport = await Image.file(File(photo!.path));
+    setState(() {
+      photo_string=base64Encode(photo_bytes).toString();
+    });
+    print(photo_string);
+    await Gal.putImage(photo!.path);
+  }
+
+  void ajouter_rapport(){
+    setState(() {
+      photo_rapport=null;
+    });
+    if(description.text.isNotEmpty){
+      setState(() {
+        description.clear();
+      });
+    }
+    showModalBottomSheet(backgroundColor: Colors.transparent,context: context, builder: (context)=>SingleChildScrollView(
+        child: Container(
+          height: MediaQuery.of(context).size.height *0.55,
+          width: MediaQuery.of(context).size.width *1,
+          decoration: BoxDecoration(
+              border: Border(top: BorderSide(color: Colors.green,width: 20)),
+              borderRadius: BorderRadius.only(topRight: Radius.circular(MediaQuery.of(context).size.width *1),topLeft: Radius.circular(MediaQuery.of(context).size.width *1)),color: Colors.white),
+          child: Column(
+            children: [
+              SizedBox(height: MediaQuery.of(context).size.height *0.07,),
+              Container(child: Text("AJOUTER UN RAPPORT",style: TextStyle(fontFamily: "Poppins",fontSize: MediaQuery.of(context).size.width *0.06),),),
+              SizedBox(height: MediaQuery.of(context).size.height *0.02,),
+              Container(child: Text("Appuyer pour prendre \nune photo",textAlign: TextAlign.center,style: TextStyle(fontFamily: "Poppins",fontSize: MediaQuery.of(context).size.width *0.04)),),
+              SizedBox(height: MediaQuery.of(context).size.height *0.01,),
+              GestureDetector(
+                child: photo_rapport==null?Container(
+                    child: Lottie.asset("assets/animations/Add new.json",height: MediaQuery.of(context).size.height *0.20)):Container(
+                  height: MediaQuery.of(context).size.height *0.15,
+                  child: Container(
+                    decoration: BoxDecoration(border: Border.all(color: Colors.green,width: MediaQuery.of(context).size.width *0.007,),borderRadius: BorderRadius.all(Radius.circular(MediaQuery.of(context).size.width *0.02))),
+                    child:ClipRRect(child: photo_rapport,),),),
+                onTap: ()async{
+                  await prendre_photo();
+                },
+
+              ),
+              SizedBox(height: MediaQuery.of(context).size.height *0.02,),
+              Container(
+                height: MediaQuery.of(context).size.height *0.1,
+                padding: EdgeInsets.only(left: MediaQuery.of(context).size.width *0.04,right: MediaQuery.of(context).size.width *0.04),
+                child: TextFormField(
+                  controller: description,
+                  maxLines: 200,
+                  decoration: InputDecoration(
+                      hintText: "DESCRIPTION",
+
+                      suffixIcon: IconButton(onPressed: ()async{
+                        if(photo==null|| description.text.isEmpty){
+                          Navigator.pop(context);
+                          message_champ_vide();
+                        }else{
+                          await envoyer_rapport();
+
+                          Navigator.pop(context);
+                        }
+
+                      }, icon: Icon(Icons.send,color: Colors.black,)),
+                      hintStyle: TextStyle(fontFamily: "Poppins"),
+                      enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.all(Radius.circular(MediaQuery.of(context).size.width *0.03))
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.all(Radius.circular(MediaQuery.of(context).size.width *0.03))
+                      )
+                  ),
+                ),)
+            ],),
+        )));
+  }
+  void message_champ_vide(){
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(duration: Duration(seconds: 1),backgroundColor: Colors.transparent,content: GestureDetector(
+        child: Container(
+          height: MediaQuery.of(context).size.height *0.1,
+          width: MediaQuery.of(context).size.width *1,
+          decoration: BoxDecoration(color: Colors.red,
+              borderRadius: BorderRadius.all(Radius.circular(MediaQuery.of(context).size.width *0.06))
+          ),
+          child: ListTile(
+
+            title: Text("CHAMP VIDE",style: TextStyle(color: Colors.white,fontFamily: "Poppins"),),
+            subtitle: Container(
+              margin: EdgeInsets.only(top: MediaQuery.of(context).size.height *0.01),
+              child: Text("VOUS DEVEZ ENTRER DES DONNEES",style: TextStyle(color: Colors.white70,fontFamily: "Poppins"),),),
+            leading: Icon(Icons.dangerous,size: MediaQuery.of(context).size.width *0.15,color: Colors.white,),
+          ),
+        )
+    )));
+  }
   // Pour le marqueur de l'utilisateur
   CircleAnnotationManager? _circleAnnotationManager;
   CircleAnnotation? _userCircleAnnotation;
@@ -56,11 +162,47 @@ class _AcceuilPageState extends State<AcceuilPage> {
 
   var numero;
   var data;
-  Future <void> affichier_donnee()async{
-    final url=Uri.parse("http://192.168.1.36:8000/afficher_donnee_utilisateur");
+  Future <void> envoyer_rapport()async{
+    final url=Uri.parse("http://10.0.2.2:8000/envoyer_rapport_utilisateur");
     var message=await http.post(url,headers: {"Content-Type":"application/json"},
         body: jsonEncode({
-          "numero":numero
+          "numero":numero,
+          "latitude":latitude.toString(),
+          "longitude":longitude.toString(),
+          "descriptions":description.text,
+          "photo":photo_string
+        })
+    );
+    data=jsonDecode(message.body);
+    if(data["rapport_utilisateur"]=="rapport utilisateur ajouté"){
+
+    }
+
+  }
+  void message_rapport_recu(){
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(duration: Duration(seconds: 1),backgroundColor: Colors.transparent,content: GestureDetector(
+        child: Container(
+          height: MediaQuery.of(context).size.height *0.1,
+          width: MediaQuery.of(context).size.width *1,
+          decoration: BoxDecoration(color: Colors.blue,
+              borderRadius: BorderRadius.all(Radius.circular(MediaQuery.of(context).size.width *0.06))
+          ),
+          child: ListTile(
+
+            title: Text("MERCI POUR VOTRE RAPPORT",style: TextStyle(color: Colors.white,fontFamily: "Poppins"),),
+            subtitle: Container(
+              margin: EdgeInsets.only(top: MediaQuery.of(context).size.height *0.01),
+              child: Text("NOUS VOUS RECONTACTERONS",style: TextStyle(color: Colors.white70,fontFamily: "Poppins"),),),
+            leading: Icon(Icons.track_changes_outlined,size: MediaQuery.of(context).size.width *0.15,color: Colors.white,),
+          ),
+        )
+    )));
+  }
+  Future <void> affichier_donnee()async{
+    final url=Uri.parse("http://10.0.2.2:8000/afficher_donnee_utilisateur");
+    var message=await http.post(url,headers: {"Content-Type":"application/json"},
+        body: jsonEncode({
+          "numero":numero,
         })
     );
     data=jsonDecode(message.body);
@@ -72,6 +214,7 @@ class _AcceuilPageState extends State<AcceuilPage> {
       numero=perfs.getString("numero_utilisateur")??"vide";
     });
     print(numero);
+
   }
   @override
   void initState() {
@@ -81,6 +224,7 @@ class _AcceuilPageState extends State<AcceuilPage> {
     _determinePosition();
     avoirville();
     affichier_donnee();
+    restaurer_donnee();
   }
 
   Future<void> _determinePosition() async {
@@ -251,7 +395,7 @@ padding: EdgeInsets.only(left: MediaQuery.of(context).size.width *0.07,right: Me
                   GestureDetector(
                     onTap: ()async{
                       await restaurer_donnee();
-Navigator.push(context, MaterialPageRoute(builder: (context)=>RapportPage(longitude:longitude,latitude:latitude,numero:numero)));
+                      ajouter_rapport();
                     },
                     child:Container(
 

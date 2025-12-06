@@ -28,7 +28,7 @@ class _CreationComptePageState extends State<CreationComptePage> {
   bool couleurborder2=true;
   var data;
   Future <void> envoyerdonnees() async{
-    final url=Uri.parse("http://192.168.1.36:8000/ajouter_utilisateur");
+    final url=Uri.parse("http://10.0.2.2:8000/ajouter_utilisateur");
     var message=await http.post(url,headers: {'Content-Type':'application/json'},
     body: jsonEncode({
       'nom':nom_complet.text,
