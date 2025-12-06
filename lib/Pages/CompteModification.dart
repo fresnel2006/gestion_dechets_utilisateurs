@@ -1,15 +1,102 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:hackaton_utilisateur/Pages/Inscription.dart';
 import 'package:lottie/lottie.dart';
 
 class CompteModificationPage extends StatefulWidget {
-  const CompteModificationPage({super.key});
-
+  CompteModificationPage({super.key, required this.identifiant});
+var identifiant;
   @override
   State<CompteModificationPage> createState() => _CompteModificationPageState();
 }
 
 class _CompteModificationPageState extends State<CompteModificationPage> {
+
+  final nom=TextEditingController();
+  final numero=TextEditingController();
+  final mot_de_passe=TextEditingController();
+  bool bordure_couleur1=true;
+  bool bordure_couleur2=true;
+  bool bordure_couleur3=true;
+  void message_erreur_mot_de_passe1(){
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(duration: Duration(seconds: 1),backgroundColor: Colors.transparent,content: GestureDetector(
+        child: Container(
+          height: MediaQuery.of(context).size.height *0.1,
+          width: MediaQuery.of(context).size.width *1,
+          decoration: BoxDecoration(color: Colors.red,
+              borderRadius: BorderRadius.all(Radius.circular(MediaQuery.of(context).size.width *0.06))
+          ),
+          child: ListTile(
+
+            title: Text("ERREUR \nVERIFIEZ LES CHAMPS",style: TextStyle(color: Colors.white,fontFamily: "Poppins"),),
+            subtitle: Container(
+
+              child: Text("REESSAYEZ",style: TextStyle(color: Colors.white70,fontFamily: "Poppins"),),),
+            leading: Icon(Icons.dangerous,size: MediaQuery.of(context).size.width *0.15,color: Colors.white,),
+          ),
+        )
+    )));
+  }void message_erreur_mot_de_passe2(){
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(duration: Duration(seconds: 1),backgroundColor: Colors.transparent,content: GestureDetector(
+        child: Container(
+          height: MediaQuery.of(context).size.height *0.1,
+          width: MediaQuery.of(context).size.width *1,
+          decoration: BoxDecoration(color: Colors.red,
+              borderRadius: BorderRadius.all(Radius.circular(MediaQuery.of(context).size.width *0.06))
+          ),
+          child: ListTile(
+
+            title: Text("ERREUR \nLE CHAMPS EST VIDE OU CONTIENT UN ESPACE",style: TextStyle(color: Colors.white,fontFamily: "Poppins"),),
+            subtitle: Container(
+
+              child: Text("REESSAYEZ",style: TextStyle(color: Colors.white70,fontFamily: "Poppins"),),),
+            leading: Icon(Icons.dangerous,size: MediaQuery.of(context).size.width *0.15,color: Colors.white,),
+          ),
+        )
+    )));
+  }
+  void verification_donne(){
+    if(nom.text.isNotEmpty){
+      message_erreur_mot_de_passe1();
+      setState(() {
+        bordure_couleur1=true;
+      });
+    }
+    if(nom.text.isEmpty){
+      message_erreur_mot_de_passe1();
+      setState(() {
+        bordure_couleur1=false;
+      });
+    }
+    if(numero.text.isEmpty){
+      message_erreur_mot_de_passe1();
+      setState(() {
+        bordure_couleur2=false;
+      });
+    }
+    if(numero.text.isNotEmpty){
+      message_erreur_mot_de_passe1();
+      setState(() {
+        bordure_couleur2=true;
+      });
+    }
+
+    if(mot_de_passe.text.contains(" ")||mot_de_passe.text.isEmpty){
+      message_erreur_mot_de_passe2();
+      setState(() {
+        bordure_couleur3=false;
+      });
+    }
+    if(numero.text.isNotEmpty && !mot_de_passe.text.contains(" ") && mot_de_passe.text.isNotEmpty && nom.text.isNotEmpty){
+      setState(() {
+        bordure_couleur1=true;
+        bordure_couleur2=true;
+        bordure_couleur3=true;
+      });
+
+    }
+  }
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -54,6 +141,7 @@ right: MediaQuery.of(context).size.width *0.22,
                   height: MediaQuery.of(context).size.height *0.065,
                   padding: EdgeInsets.only(left: 10,right: 10),
                   child: TextFormField(
+                    controller: nom,
                     cursorColor: Color(0xFF292D3E),
                     decoration: InputDecoration(
                         hintText:"Nom",
@@ -61,12 +149,12 @@ right: MediaQuery.of(context).size.width *0.22,
                         prefixIcon: Icon(Icons.edit,size: 19,color: Colors.green,),
                         focusedBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.all(Radius.circular(MediaQuery.of(context).size.width *0.03)),
-                            borderSide: BorderSide(color: Colors.green,width: MediaQuery.of(context).size.width *0.007,)
+                            borderSide: BorderSide(color: bordure_couleur1?Colors.green:Colors.red,width: MediaQuery.of(context).size.width *0.007,)
                         ),
                         enabledBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.all(
                               Radius.circular(MediaQuery.of(context).size.width *0.03)
-                          ), borderSide: BorderSide(width: MediaQuery.of(context).size.width *0.007,color: Colors.green),
+                          ), borderSide: BorderSide(width: MediaQuery.of(context).size.width *0.007,color: bordure_couleur1?Colors.green:Colors.red),
                         )
                     ),
                   )),
@@ -76,8 +164,13 @@ right: MediaQuery.of(context).size.width *0.22,
                   height: MediaQuery.of(context).size.height *0.065,
                   padding: EdgeInsets.only(left: 10,right: 10),
                   child: TextFormField(
+                    inputFormatters: [
+                      FilteringTextInputFormatter.digitsOnly
+                    ],
+                    controller: numero,
                     cursorColor: Color(0xFF292D3E),
                     decoration: InputDecoration(
+
                         hintText:"Numero",
                         hintStyle: TextStyle(fontFamily: "Poppins",color: Colors.grey[500]),
                         prefixIcon: Icon(Icons.numbers_outlined,size: 19,color: Colors.green,),
@@ -98,6 +191,7 @@ right: MediaQuery.of(context).size.width *0.22,
                   height: MediaQuery.of(context).size.height *0.065,
                   padding: EdgeInsets.only(left: 10,right: 10),
                   child: TextFormField(
+                    controller: mot_de_passe,
                     cursorColor: Color(0xFF292D3E),
                     decoration: InputDecoration(
                         hintText:"Mot de passe",
@@ -117,7 +211,7 @@ right: MediaQuery.of(context).size.width *0.22,
                     ),
                   )),
               GestureDetector(
-
+onTap: (){verification_donne();},
                 child:
               Container(
                 alignment: AlignmentGeometry.center,

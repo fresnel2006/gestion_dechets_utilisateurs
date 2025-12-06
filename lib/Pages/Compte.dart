@@ -19,17 +19,47 @@ class _ComptePageState extends State<ComptePage> {
   var numero;
   var nom;
   var mot_de_passe;
+  var information;
+  final verificateur=TextEditingController();
+  void message_erreur_mot_de_passe(){
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(duration: Duration(seconds: 1),backgroundColor: Colors.transparent,content: GestureDetector(
+        child: Container(
+          height: MediaQuery.of(context).size.height *0.1,
+          width: MediaQuery.of(context).size.width *1,
+          decoration: BoxDecoration(color: Colors.red,
+              borderRadius: BorderRadius.all(Radius.circular(MediaQuery.of(context).size.width *0.06))
+          ),
+          child: ListTile(
 
-
-  Future <void> restaurer_donnee() async{
-    var perfs=await SharedPreferences.getInstance();
+            title: Text("MOTE DE PASSE INCORRECT",style: TextStyle(color: Colors.white,fontFamily: "Poppins"),),
+            subtitle: Container(
+              margin: EdgeInsets.only(top: MediaQuery.of(context).size.height *0.01),
+              child: Text("REESSAYEZ",style: TextStyle(color: Colors.white70,fontFamily: "Poppins"),),),
+            leading: Icon(Icons.dangerous,size: MediaQuery.of(context).size.width *0.15,color: Colors.white,),
+          ),
+        )
+    )));
+  }
+  Future <void> restaurer_donnee() async {
+    var perfs = await SharedPreferences.getInstance();
     setState(() {
-      numero=perfs.getString("numero_utilisateur");
-      nom= perfs.getString("nom_utilisateur");
-
+      numero = perfs.getString("numero_utilisateur");
+      nom = perfs.getString("nom_utilisateur");
     });
     print(numero);
     print(nom);
+
+  }
+  Future <void> information_utilisateur() async {
+    final url=Uri.parse("http://10.0.2.2:8000/afficher_donnee_utilisateur");
+    var message= await http.post(url,headers: {"Content-Type":"application/json"},
+    body: jsonEncode({
+      "numero":numero
+    })
+    );
+    information=jsonDecode(message.body);
+    print(information["resultat"][0][3]);
+
   }
 
   Future <void> verifier_mot_de_passe() async{
@@ -48,6 +78,7 @@ class _ComptePageState extends State<ComptePage> {
           height: MediaQuery.of(context).size.height *0.07,
           width: MediaQuery.of(context).size.width *0.7,
           child: TextFormField(
+            controller: verificateur,
             decoration: InputDecoration(
               hintText: "Mot de passe",
               hintStyle: TextStyle(fontFamily: "Poppins",color: Colors.black38),
@@ -62,7 +93,16 @@ class _ComptePageState extends State<ComptePage> {
         SizedBox(height: MediaQuery.of(context).size.height *0.04,),
         Container(
 
-          child: ElevatedButton(onPressed: (){}, child: Text("Verifier",style: TextStyle(fontFamily:"Poppins",color: Colors.white,fontSize: MediaQuery.of(context).size.width *0.05),),style: ElevatedButton.styleFrom(backgroundColor: Colors.green),),)
+          child: ElevatedButton(onPressed: (){
+if(verificateur.text!=information["resultat"][0][3]){
+  verificateur.clear();
+  Navigator.pop(context);
+  message_erreur_mot_de_passe();
+}else{
+  verificateur.clear();
+  Navigator.push(context, MaterialPageRoute(builder: (context)=>CompteModificationPage(identifiant:information["resultat"][0][0])));
+}
+          }, child: Text("Verifier",style: TextStyle(fontFamily:"Poppins",color: Colors.white,fontSize: MediaQuery.of(context).size.width *0.05),),style: ElevatedButton.styleFrom(backgroundColor: Colors.green),),)
     ],
     ),)));
   }
@@ -188,7 +228,8 @@ Icon(Icons.edit,color: Colors.green,),
                       Text("####",style: TextStyle(fontFamily: "Poppins"))
                   ],),),
                 GestureDetector(
-                    onTap: (){
+                    onTap: () async{
+                      await information_utilisateur();
                      verifier_mot_de_passe();
                       },
                     child: Container(

@@ -223,8 +223,9 @@ class _AcceuilPageState extends State<AcceuilPage> {
         "pk.eyJ1IjoiZnJlc25lbDYwNyIsImEiOiJjbWhrbGx1MzMwOGV4MmtxazdsOWp0dzIxIn0.v02HfvuS1iZnm_-od_niSw");
     _determinePosition();
     avoirville();
-    affichier_donnee();
     restaurer_donnee();
+    affichier_donnee();
+
   }
 
   Future<void> _determinePosition() async {
@@ -423,7 +424,9 @@ padding: EdgeInsets.only(left: MediaQuery.of(context).size.width *0.07,right: Me
               right: MediaQuery.of(context).size.width *0.035,
               child: Row(
             children: [
-              Container(decoration: BoxDecoration(color: Colors.white,border: Border.all(color: Colors.black),borderRadius: BorderRadius.circular(MediaQuery.of(context).size.width *1)),child: CircleAvatar(backgroundColor: Colors.white,child: IconButton(onPressed: (){}, icon: Icon(Icons.warning,color: Colors.red)),),),
+              Container(decoration: BoxDecoration(color: Colors.white,border: Border.all(color: Colors.black),borderRadius: BorderRadius.circular(MediaQuery.of(context).size.width *1)),child: CircleAvatar(backgroundColor: Colors.white,child: IconButton(onPressed: (){
+                ajouter_rapport();
+              }, icon: Icon(Icons.warning,color: Colors.red)),),),
               SizedBox(width: MediaQuery.of(context).size.width *0.04,),
               Container(decoration: BoxDecoration(color: Colors.white,border: Border.all(color: Colors.black),borderRadius: BorderRadius.circular(MediaQuery.of(context).size.width *1)),child: CircleAvatar(backgroundColor: Colors.white,child: IconButton(onPressed: ()async{
                 await restaurer_donnee();
