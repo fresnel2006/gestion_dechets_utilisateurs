@@ -119,12 +119,7 @@ child: SingleChildScrollView(child: Column(children: [
       }
     }
   }
-  @override
-  void dispose(){
-    numero.dispose();
-    nom_complet.dispose();
-    super.dispose();
-  }
+
   @override
   Widget build(BuildContext context) {
 

@@ -1,8 +1,13 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:hackaton_utilisateur/Pages/Drawer.dart';
 import 'package:hackaton_utilisateur/Pages/Inscription.dart';
+import 'package:http/http.dart' as http;
 import 'package:lottie/lottie.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class CompteModificationPage extends StatefulWidget {
   CompteModificationPage({super.key, required this.identifiant});
@@ -19,6 +24,46 @@ class _CompteModificationPageState extends State<CompteModificationPage> {
   bool bordure_couleur1=true;
   bool bordure_couleur2=true;
   bool bordure_couleur3=true;
+  var data;
+
+  Future <void> sauvegarder_numero() async {
+    SharedPreferences preferences=await SharedPreferences.getInstance();
+    await preferences.setString("numero_utilisateur", numero.text);
+    await preferences.setString("nom_utilisateur",nom.text);
+  }
+
+  Future <void> envoyerdonnees() async {
+    final url = Uri.parse("http://10.0.2.2:8000/verifier_utilisateur");
+    var message = await http.post(
+        url, headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'numero': numero.text,
+        })
+    );
+    setState(() {
+      data=jsonDecode(message.body);
+    });
+    print(data["existe"]);
+  }
+
+  Future <void> modifier_compte() async{
+    final url=Uri.parse("http://10.0.2.2:8000/modifier_information");
+    var message=await http.post(url,headers: {"Content-Type":"application/json"},
+    body: jsonEncode({
+      "id_utilisateur":widget.identifiant,
+      "nom":nom.text,
+      "numero":numero.text,
+      "mot_de_passe":mot_de_passe.text
+    })
+
+    );
+    setState(() {
+      data=jsonDecode(message.body);
+    });
+
+    print(data);
+  }
+
   void message_erreur_mot_de_passe1(){
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(duration: Duration(seconds: 1),backgroundColor: Colors.transparent,content: GestureDetector(
         child: Container(
@@ -29,15 +74,16 @@ class _CompteModificationPageState extends State<CompteModificationPage> {
           ),
           child: ListTile(
 
-            title: Text("ERREUR \nVERIFIEZ LES CHAMPS",style: TextStyle(color: Colors.white,fontFamily: "Poppins"),),
+            title: Text("ERREUR\nPAS D'ESPACE OU DE VIDE",style: TextStyle(color: Colors.white,fontFamily: "Poppins"),),
             subtitle: Container(
 
-              child: Text("REESSAYEZ",style: TextStyle(color: Colors.white70,fontFamily: "Poppins"),),),
+              child: Text("Saisissz correctement",style: TextStyle(color: Colors.white70,fontFamily: "Poppins"),),),
             leading: Icon(Icons.dangerous,size: MediaQuery.of(context).size.width *0.15,color: Colors.white,),
           ),
         )
     )));
-  }void message_erreur_mot_de_passe2(){
+  }
+  void utilisateur_existence(){
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(duration: Duration(seconds: 1),backgroundColor: Colors.transparent,content: GestureDetector(
         child: Container(
           height: MediaQuery.of(context).size.height *0.1,
@@ -47,7 +93,25 @@ class _CompteModificationPageState extends State<CompteModificationPage> {
           ),
           child: ListTile(
 
-            title: Text("ERREUR \nLE CHAMPS EST VIDE OU CONTIENT UN ESPACE",style: TextStyle(color: Colors.white,fontFamily: "Poppins"),),
+            title: Text("ERREUR\nUTILISATEUR EXISTE",style: TextStyle(color: Colors.white,fontFamily: "Poppins"),),
+            subtitle: Container(
+              child: Text("Numero possédé",style: TextStyle(color: Colors.white70,fontFamily: "Poppins"),),),
+            leading: Icon(Icons.warning_amber,size: MediaQuery.of(context).size.width *0.15,color: Colors.white,),
+          ),
+        )
+    )));
+  }
+  void message_erreur_mot_de_passe2(){
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(duration: Duration(seconds: 1),backgroundColor: Colors.transparent,content: GestureDetector(
+        child: Container(
+          height: MediaQuery.of(context).size.height *0.1,
+          width: MediaQuery.of(context).size.width *1,
+          decoration: BoxDecoration(color: Colors.red,
+              borderRadius: BorderRadius.all(Radius.circular(MediaQuery.of(context).size.width *0.06))
+          ),
+          child: ListTile(
+
+            title: Text("ERREUR \n PROBLEME SUR NUMERO",style: TextStyle(color: Colors.white,fontFamily: "Poppins"),),
             subtitle: Container(
 
               child: Text("REESSAYEZ",style: TextStyle(color: Colors.white70,fontFamily: "Poppins"),),),
@@ -56,27 +120,26 @@ class _CompteModificationPageState extends State<CompteModificationPage> {
         )
     )));
   }
-  void verification_donne(){
+  Future<void> verification_donne() async {
     if(nom.text.isNotEmpty){
-      message_erreur_mot_de_passe1();
+
       setState(() {
         bordure_couleur1=true;
       });
     }
-    if(nom.text.isEmpty){
+    if(nom.text.isEmpty||numero.text.isEmpty||numero.text.length!=10){
       message_erreur_mot_de_passe1();
       setState(() {
         bordure_couleur1=false;
       });
     }
-    if(numero.text.isEmpty){
-      message_erreur_mot_de_passe1();
+    if(numero.text.isEmpty||numero.text.length!=10){
+
       setState(() {
         bordure_couleur2=false;
       });
     }
-    if(numero.text.isNotEmpty){
-      message_erreur_mot_de_passe1();
+    if(numero.text.isNotEmpty && numero.text.length==10 ){
       setState(() {
         bordure_couleur2=true;
       });
@@ -88,12 +151,20 @@ class _CompteModificationPageState extends State<CompteModificationPage> {
         bordure_couleur3=false;
       });
     }
-    if(numero.text.isNotEmpty && !mot_de_passe.text.contains(" ") && mot_de_passe.text.isNotEmpty && nom.text.isNotEmpty){
+    if(numero.text.isNotEmpty && !mot_de_passe.text.contains(" ") && mot_de_passe.text.isNotEmpty && nom.text.isNotEmpty && numero.text.length==10){
       setState(() {
         bordure_couleur1=true;
         bordure_couleur2=true;
         bordure_couleur3=true;
       });
+await envoyerdonnees();
+if(data["existe"]=="true"){
+  utilisateur_existence();
+}else{
+  await modifier_compte();
+  sauvegarder_numero();
+  Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (context)=>DrawerPage()), (route)=>false);
+}
 
     }
   }
@@ -176,12 +247,12 @@ right: MediaQuery.of(context).size.width *0.22,
                         prefixIcon: Icon(Icons.numbers_outlined,size: 19,color: Colors.green,),
                         focusedBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.all(Radius.circular(MediaQuery.of(context).size.width *0.03)),
-                            borderSide: BorderSide(color: Colors.green,width: MediaQuery.of(context).size.width *0.007,)
+                            borderSide: BorderSide(color: bordure_couleur2?Colors.green:Colors.red,width: MediaQuery.of(context).size.width *0.007,)
                         ),
                         enabledBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.all(
                               Radius.circular(MediaQuery.of(context).size.width *0.03)
-                          ), borderSide: BorderSide(width: MediaQuery.of(context).size.width *0.007,color: Colors.green),
+                          ), borderSide: BorderSide(width: MediaQuery.of(context).size.width *0.007,color: bordure_couleur2?Colors.green:Colors.red),
                         )
                     ),
                   )),
@@ -199,19 +270,21 @@ right: MediaQuery.of(context).size.width *0.22,
                         prefixIcon: Icon(FontAwesomeIcons.lock,size: 19,color: Colors.green,),
                         focusedBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.all(Radius.circular(MediaQuery.of(context).size.width *0.03)),
-                            borderSide: BorderSide(color: Colors.green,width: MediaQuery.of(context).size.width *0.007,)
+                            borderSide: BorderSide(color: bordure_couleur3?Colors.green:Colors.red,width: MediaQuery.of(context).size.width *0.007,)
                         ),
                         enabledBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.all(
                               Radius.circular(MediaQuery.of(context).size.width *0.03)
-                          ), borderSide: BorderSide(width: MediaQuery.of(context).size.width *0.007,color: Colors.green),
+                          ), borderSide: BorderSide(width: MediaQuery.of(context).size.width *0.007,color: bordure_couleur3?Colors.green:Colors.red),
                         ),
 
 
                     ),
                   )),
               GestureDetector(
-onTap: (){verification_donne();},
+onTap: (){
+  verification_donne();
+  },
                 child:
               Container(
                 alignment: AlignmentGeometry.center,

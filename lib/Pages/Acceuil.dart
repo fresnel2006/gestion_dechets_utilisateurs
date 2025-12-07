@@ -175,7 +175,7 @@ class _AcceuilPageState extends State<AcceuilPage> {
     );
     data=jsonDecode(message.body);
     if(data["rapport_utilisateur"]=="rapport utilisateur ajouté"){
-
+message_rapport_recu();
     }
 
   }
