@@ -108,7 +108,10 @@ void verifiersaisie() {
               hintText:"Numero",
               hintStyle: TextStyle(fontFamily: "Poppins",color: Colors.grey[500]),
               prefixIcon: Icon(FontAwesomeIcons.hashtag,size: 19,color: Color(0xFF292D3E),),
-              focusedBorder: UnderlineInputBorder(
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.all(
+                    Radius.circular(MediaQuery.of(context).size.width *0.03)
+                ),
                   borderSide: BorderSide(color: bourdurecouleur1?Colors.green:Colors.red,width: MediaQuery.of(context).size.width *0.007,)
               ),
               enabledBorder: OutlineInputBorder(
@@ -143,7 +146,10 @@ void verifiersaisie() {
                   Radius.circular(MediaQuery.of(context).size.width *0.03)
               ),borderSide: BorderSide(width: MediaQuery.of(context).size.width *0.007,color: Colors.green)
           ),
-          focusedBorder: UnderlineInputBorder(
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.all(
+                Radius.circular(MediaQuery.of(context).size.width *0.03)
+            ),
               borderSide: BorderSide(color: Colors.green,width: MediaQuery.of(context).size.width *0.007,)
           ),
         ),
