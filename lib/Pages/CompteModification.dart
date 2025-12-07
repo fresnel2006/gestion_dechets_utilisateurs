@@ -26,6 +26,7 @@ class _CompteModificationPageState extends State<CompteModificationPage> {
   bool bordure_couleur3=true;
   var data;
 
+
   Future <void> sauvegarder_numero() async {
     SharedPreferences preferences=await SharedPreferences.getInstance();
     await preferences.setString("numero_utilisateur", numero.text);
@@ -33,7 +34,7 @@ class _CompteModificationPageState extends State<CompteModificationPage> {
   }
 
   Future <void> envoyerdonnees() async {
-    final url = Uri.parse("http://10.0.2.2:8000/verifier_utilisateur");
+    final url = Uri.parse("http://192.168.1.7:8000/verifier_utilisateur");
     var message = await http.post(
         url, headers: {'Content-Type': 'application/json'},
         body: jsonEncode({
@@ -47,7 +48,7 @@ class _CompteModificationPageState extends State<CompteModificationPage> {
   }
 
   Future <void> modifier_compte() async{
-    final url=Uri.parse("http://10.0.2.2:8000/modifier_information");
+    final url=Uri.parse("http://192.168.1.7:8000/modifier_information");
     var message=await http.post(url,headers: {"Content-Type":"application/json"},
     body: jsonEncode({
       "id_utilisateur":widget.identifiant,
@@ -212,6 +213,7 @@ right: MediaQuery.of(context).size.width *0.22,
                   height: MediaQuery.of(context).size.height *0.065,
                   padding: EdgeInsets.only(left: 10,right: 10),
                   child: TextFormField(
+                    style: TextStyle(fontFamily: "Poppins"),
                     controller: nom,
                     cursorColor: Color(0xFF292D3E),
                     decoration: InputDecoration(
@@ -235,6 +237,7 @@ right: MediaQuery.of(context).size.width *0.22,
                   height: MediaQuery.of(context).size.height *0.065,
                   padding: EdgeInsets.only(left: 10,right: 10),
                   child: TextFormField(
+                    style: TextStyle(fontFamily: "Poppins"),
                     inputFormatters: [
                       FilteringTextInputFormatter.digitsOnly
                     ],
@@ -262,6 +265,7 @@ right: MediaQuery.of(context).size.width *0.22,
                   height: MediaQuery.of(context).size.height *0.065,
                   padding: EdgeInsets.only(left: 10,right: 10),
                   child: TextFormField(
+                    style: TextStyle(fontFamily: "Poppins"),
                     controller: mot_de_passe,
                     cursorColor: Color(0xFF292D3E),
                     decoration: InputDecoration(

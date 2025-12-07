@@ -28,7 +28,7 @@ class _CreationComptePageState extends State<CreationComptePage> {
   bool couleurborder2=true;
   var data;
   Future <void> envoyerdonnees() async{
-    final url=Uri.parse("http://10.0.2.2:8000/ajouter_utilisateur");
+    final url=Uri.parse("http://192.168.1.7:8000/ajouter_utilisateur");
     var message=await http.post(url,headers: {'Content-Type':'application/json'},
     body: jsonEncode({
       'nom':nom_complet.text,
@@ -50,7 +50,7 @@ class _CreationComptePageState extends State<CreationComptePage> {
   Future <void> sauvegarder_numero() async {
     SharedPreferences preferences=await SharedPreferences.getInstance();
     await preferences.setString("numero_utilisateur", numero.text);
-
+    await preferences.setString("nom_utilisateur",nom_complet.text);
   }
   void messagecode1(){
   ScaffoldMessenger.of(context).showSnackBar(SnackBar(duration: Duration(milliseconds: 1200),backgroundColor: Colors.transparent,content: Container(

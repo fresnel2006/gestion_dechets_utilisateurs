@@ -19,7 +19,7 @@ class _MenuPageState extends State<MenuPage> {
   var numero;
   var data;
   Future <void> affichier_donnee()async{
-    final url=Uri.parse("http://10.0.2.2:8000/afficher_donnee_utilisateur");
+    final url=Uri.parse("http://192.168.1.7:8000/afficher_donnee_utilisateur");
     var message=await http.post(url,headers: {"Content-Type":"application/json"},
         body: jsonEncode({
           "numero":numero
@@ -71,8 +71,8 @@ spacing: MediaQuery.of(context).size.height *0.018,
               TextButton(onPressed: ()async{
                 await restaurer_donnee();
                 await affichier_donnee();
-                await sauvegarder_donnee_utilisateur();
                 Navigator.push(context, MaterialPageRoute(builder: (context)=>ComptePage()));
+
               }, child: Text("Mon compte",style: TextStyle(color: Colors.black,fontFamily: "Poppins2")))
             ],
           )),

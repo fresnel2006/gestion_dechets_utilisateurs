@@ -22,11 +22,13 @@ class _ComptePageState extends State<ComptePage> {
   var mot_de_passe;
   var information;
   final verificateur=TextEditingController();
+  //fonction charger de sauvegarder la valeur cle rediriger a faux
   Future <void> sauvegarder() async {
     SharedPreferences preferences=await SharedPreferences.getInstance();
     await preferences.setBool("rediriger", false);
 
   }
+  //le petit message afficher quand y'a une erreur sur le mot de passe lors de la modification
   void message_erreur_mot_de_passe(){
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(duration: Duration(seconds: 1),backgroundColor: Colors.transparent,content: GestureDetector(
         child: Container(
@@ -36,7 +38,6 @@ class _ComptePageState extends State<ComptePage> {
               borderRadius: BorderRadius.all(Radius.circular(MediaQuery.of(context).size.width *0.06))
           ),
           child: ListTile(
-
             title: Text("MOTE DE PASSE INCORRECT",style: TextStyle(color: Colors.white,fontFamily: "Poppins"),),
             subtitle: Container(
               margin: EdgeInsets.only(top: MediaQuery.of(context).size.height *0.01),
@@ -46,6 +47,7 @@ class _ComptePageState extends State<ComptePage> {
         )
     )));
   }
+  //fonction charger de donner le numero et nom dans des variables
   Future <void> restaurer_donnee() async {
     var perfs = await SharedPreferences.getInstance();
     setState(() {
@@ -54,20 +56,22 @@ class _ComptePageState extends State<ComptePage> {
     });
     print(numero);
     print(nom);
-
   }
+  //fonction charger d'afficher les informations sur l'utilisateur
   Future <void> information_utilisateur() async {
-    final url=Uri.parse("http://10.0.2.2:8000/afficher_donnee_utilisateur");
+    final url=Uri.parse("http://192.168.1.7:8000/afficher_donnee_utilisateur");
     var message= await http.post(url,headers: {"Content-Type":"application/json"},
     body: jsonEncode({
       "numero":numero
     })
     );
-    information=jsonDecode(message.body);
+    setState(() {
+      information=jsonDecode(message.body);
+    });
     print(information["resultat"][0][3]);
 
   }
-
+// fonction charger de faire apparaitre la petite page pour que l'utilisateur puisse saisir le mot de passe
   Future <void> verifier_mot_de_passe() async{
     showModalBottomSheet(backgroundColor:Colors.transparent,context: context, builder: (context)=>SingleChildScrollView(child:Container(height: MediaQuery.of(context).size.height *0.6,width: MediaQuery.of(context).size.width *1,decoration: BoxDecoration(color: Colors.white,border: Border(top: BorderSide(color: Colors.green,width: MediaQuery.of(context).size.width *0.05)),
       borderRadius: BorderRadius.only(topLeft: Radius.circular(MediaQuery.of(context).size.width *0.6),topRight: Radius.circular(MediaQuery.of(context).size.width *0.6)),
@@ -84,6 +88,7 @@ class _ComptePageState extends State<ComptePage> {
           height: MediaQuery.of(context).size.height *0.07,
           width: MediaQuery.of(context).size.width *0.7,
           child: TextFormField(
+            style: TextStyle(fontFamily: "Poppins"),
             controller: verificateur,
             decoration: InputDecoration(
               hintText: "Mot de passe",
@@ -112,10 +117,12 @@ if(verificateur.text!=information["resultat"][0][3]){
     ],
     ),)));
   }
+
+  //fonction charger de faire apparaitre la petite page lorsque l'utilisateur doit saisir le mot de passe de deconnexion
+
   Future <void> verifier_mot_de_passe_deconnexion() async{
     showModalBottomSheet(backgroundColor:Colors.transparent,context: context, builder: (context)=>SingleChildScrollView(child:Container(height: MediaQuery.of(context).size.height *0.6,width: MediaQuery.of(context).size.width *1,decoration: BoxDecoration(color: Colors.white,border: Border(top: BorderSide(color: Colors.green,width: MediaQuery.of(context).size.width *0.05)),
       borderRadius: BorderRadius.only(topLeft: Radius.circular(MediaQuery.of(context).size.width *0.6),topRight: Radius.circular(MediaQuery.of(context).size.width *0.6)),
-
     ),child: Column(
       children: [
         Container(width: MediaQuery.of(context).size.width *1,),
@@ -142,14 +149,11 @@ if(verificateur.text!=information["resultat"][0][3]){
             ),),),
         SizedBox(height: MediaQuery.of(context).size.height *0.04,),
         Container(
-
           child: ElevatedButton(onPressed: (){
             if(verificateur.text==information["resultat"][0][3]){
               verificateur.clear();
               sauvegarder();
               Navigator.pushAndRemoveUntil(context,MaterialPageRoute(builder: (context)=>RedirecteurPage()), (route)=>false);
-
-
             }else{
               verificateur.clear();
               Navigator.pop(context);
@@ -160,8 +164,10 @@ if(verificateur.text!=information["resultat"][0][3]){
     ),)));
   }
 @override
+//fonction chager d'etre lance des le lancement de cette page
 void initState(){
     super.initState();
+    //donne les donnees sauvegardées
     restaurer_donnee();
 }
   @override
@@ -194,7 +200,6 @@ void initState(){
               margin: EdgeInsets.only(
                 top: MediaQuery.of(context).size.height *0.24,
                 left: MediaQuery.of(context).size.width *0.35,),
-
               child: CircleAvatar(
               backgroundColor: Colors.white,
                 radius: MediaQuery.of(context).size.width *0.15,
@@ -213,6 +218,7 @@ void initState(){
                     SizedBox(width: MediaQuery.of(context).size.width *0.21,),
                     Text("profile",style:TextStyle(fontFamily: "Poppins",fontSize: MediaQuery.of(context).size.width *0.07,color: Colors.black54) ,)
                   ],)),
+            //le contenaire avec le mot de "deconnexion" a l'interieur
             Container(
               margin: EdgeInsets.only(top: MediaQuery.of(context).size.height *0.9),
               height: MediaQuery.of(context).size.height *0.1,
@@ -221,7 +227,9 @@ void initState(){
               border: Border(top: BorderSide(width: MediaQuery.of(context).size.width *0.006,color: Colors.black26)),
               borderRadius: BorderRadius.only(topRight: Radius.circular(MediaQuery.of(context).size.width *1),topLeft: Radius.circular(MediaQuery.of(context).size.width *1))
               ),
-              child: TextButton(onPressed: (){
+              child: TextButton(onPressed: ()async{
+                //afficher les informations sur l'utilisateur
+                await information_utilisateur();
 verifier_mot_de_passe_deconnexion();
               }, child: Text("DECONNEXION",style: TextStyle(fontFamily: "Poppins2",color: Colors.white,fontSize: MediaQuery.of(context).size.width *0.04),)),
             ),
@@ -229,6 +237,7 @@ verifier_mot_de_passe_deconnexion();
             Column(
               children: [
                 Container(width: MediaQuery.of(context).size.width *1,),
+             //contenaire avec les nom de l'utilisateur
               Container(
                 width: MediaQuery.of(context).size.width *0.7,
                 height: MediaQuery.of(context).size.height *0.065,
@@ -249,6 +258,7 @@ Icon(Icons.edit,color: Colors.green,),
 
 
                 ],),),
+                //contenaire avec le numero de l'utilisateur a l'interieur
                 Container(
                   width: MediaQuery.of(context).size.width *0.7,
                   height: MediaQuery.of(context).size.height *0.065,
@@ -265,6 +275,7 @@ Icon(Icons.edit,color: Colors.green,),
                     Text(numero??"########",style: TextStyle(fontFamily: "Poppins"))
 
                   ],),),
+                //contenaire  contenant les hastags simulant le mot de passe de l'utilisateur
                 Container(
                   width: MediaQuery.of(context).size.width *0.7,
                   height: MediaQuery.of(context).size.height *0.065,
@@ -282,6 +293,7 @@ Icon(Icons.edit,color: Colors.green,),
                       SizedBox(width: MediaQuery.of(context).size.width *0.04,),
                       Text("####",style: TextStyle(fontFamily: "Poppins"))
                   ],),),
+                //le contenaire du mot modifier
                 GestureDetector(
                     onTap: () async{
                       await information_utilisateur();

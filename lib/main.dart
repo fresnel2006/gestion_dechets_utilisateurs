@@ -3,8 +3,10 @@ import 'package:hackaton_utilisateur/Pages/Acceuil.dart';
 import 'package:hackaton_utilisateur/Pages/Compte.dart';
 import 'package:hackaton_utilisateur/Pages/CompteModification.dart';
 import 'package:hackaton_utilisateur/Pages/Drawer.dart';
+import 'package:hackaton_utilisateur/Pages/Rapports.dart';
 
 import 'package:hackaton_utilisateur/Pages/Redirecteur.dart';
+
 
 
 

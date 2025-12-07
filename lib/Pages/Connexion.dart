@@ -27,7 +27,7 @@ class _ConnexionPageState extends State<ConnexionPage> {
   }
   //fonction qui sert a envoyer les donnees dans la base de donnee(nom et mot_de_passe) pour un quelle me retourne si l'utilisateur existe
   Future <void> envoyerdonnee() async {
-    final url = Uri.parse("http://10.0.2.2:8000/verifier_donnee");
+    final url = Uri.parse("http://192.168.1.7:8000/verifier_donnee");
     var message=await http.post(url,headers: {'Content-Type':'application/json'},
     body: jsonEncode({
       'numero':numero.text,
@@ -39,9 +39,9 @@ class _ConnexionPageState extends State<ConnexionPage> {
     });
     print(data["existe"]);
   }
-  //fonction pour
+  //fonction pour afficher les information sur un utilisateur
   Future <void> affichier_donnee_utilisateur() async {
-    final url = Uri.parse("http://10.0.2.2:8000/afficher_donnee_utilisateur");
+    final url = Uri.parse("http://192.168.1.7:8000/afficher_donnee_utilisateur");
     var message=await http.post(url,headers: {"Content-Type":"application/json"},body: jsonEncode({
       "numero":numero.text
     }));
