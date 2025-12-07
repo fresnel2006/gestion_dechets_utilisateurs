@@ -1,4 +1,5 @@
 import  'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:hackaton_utilisateur/Pages/Acceuil.dart';
 import 'package:hackaton_utilisateur/Pages/Compte.dart';
 import 'package:hackaton_utilisateur/Pages/CompteModification.dart';
@@ -11,7 +12,12 @@ import 'package:hackaton_utilisateur/Pages/Redirecteur.dart';
 
 
 
-void main() {
+void main() async{
+  WidgetsFlutterBinding.ensureInitialized();
+  // Bloquer l’application en portrait uniquement
+  await SystemChrome.setPreferredOrientations([
+    DeviceOrientation.portraitUp,
+  ]);
   runApp(const MyApp());
 }
 
