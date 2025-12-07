@@ -27,6 +27,7 @@ class _CreationComptePageState extends State<CreationComptePage> {
   bool couleurbordure1=true;
   bool couleurborder2=true;
   var data;
+  //fonction d'envoyer des donnees dans la base de donnee
   Future <void> envoyerdonnees() async{
     final url=Uri.parse("http://192.168.1.7:8000/ajouter_utilisateur");
     var message=await http.post(url,headers: {'Content-Type':'application/json'},
